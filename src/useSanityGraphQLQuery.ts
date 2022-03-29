@@ -10,7 +10,7 @@ interface UseSanityGraphQLQueryProps extends SanityQueryClientOptions {
   query: ASTNode | string
 
   /** An object of the variables for the GraphQL query. */
-  variables?: {[key: string]: any}
+  variables?: { [key: string]: any }
 }
 
 /**
@@ -21,26 +21,27 @@ function useSanityGraphQLQuery<T>({
   variables = {},
   ...props
 }: UseSanityGraphQLQueryProps): UseSanityQueryResponse<T> {
-  const {projectId, apiVersion, dataset, token} = useSanityConfig(props.clientConfig)
+  const {projectId, apiVersion, dataset, token} = useSanityConfig(
+    props.clientConfig,
+  )
 
   const body = graphqlRequestBody(query, variables)
   const url = `https://${projectId}.api.sanity.io/${apiVersion}/graphql/${dataset}/default`
 
-  const headers: {[key: string]: any} = {
-    'content-type': 'application/json'
+  const headers: { [key: string]: any } = {
+    'content-type': 'application/json',
   }
   if (token) {
     headers.Authorization = `Bearer ${token}`
   }
-  const request = new Request(url, {
-    method: 'POST',
-    headers,
-    body
-  })
 
-  const {data: sanityData, error} = useQuery<{data: T}>(
+  const {data: sanityData, error} = useQuery<{ data: T }>(
     [projectId, body],
-    fetchBuilder<{data: T}>(request)
+    fetchBuilder<{ data: T }>(url, {
+      method: 'POST',
+      headers,
+      body,
+    }),
   )
 
   const shopifyProducts = useSanityShopifyProducts(sanityData?.data, props)
@@ -48,7 +49,7 @@ function useSanityGraphQLQuery<T>({
   return {
     sanityData: sanityData?.data,
     errors: error,
-    shopifyProducts
+    shopifyProducts,
   }
 }
 
